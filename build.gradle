@@ -12,8 +12,8 @@ sourceCompatibility = 1.8
 //Small hack to override release related properties to prevent accidental production release if called interactively
 //Intended to fail if required (non-optional) values are not provided
 if (!project.hasProperty("disableE2EOverriding")) {
-    List<String> propertiesToOverride = ['sonatypeUsername', 'sonatypePassword', 'signing.gnupg.homeDir', 'signing.gnupg.keyName']
-    List<String> optionalPropertiesToOverride = ['signing.gnupg.passphrase']
+    List<String> propertiesToOverride = ['sonatypeUsername', 'sonatypePassword', 'signing.gnupg.keyName']
+    List<String> optionalPropertiesToOverride = ['signing.gnupg.homeDir', 'signing.gnupg.passphrase']
     logger.lifecycle("Overriding properties ${propertiesToOverride + optionalPropertiesToOverride} to use *E2E (non-production) values. Can be disbled with '-PdisableE2EOverriding'")
     overridePropertiesForE2E(propertiesToOverride)
     overrideOptionalPropertiesForE2E(optionalPropertiesToOverride)
