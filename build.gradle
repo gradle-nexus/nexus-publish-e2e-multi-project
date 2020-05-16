@@ -1,0 +1,112 @@
+plugins {
+    id "java-library"
+    id("io.github.gradle-nexus.publish-plugin") version "0.1.0-SNAPSHOT"
+    id 'signing'
+}
+
+group = "io.github.gradle-nexus-e2e"
+version = "0.0.1-szpak"
+
+sourceCompatibility = 1.8
+
+//Small hack to override release related properties to prevent accidental production release if called interactively
+//Intended to fail if required (non-optional) values are not provided
+if (!project.hasProperty("disableE2EOverriding")) {
+    List<String> propertiesToOverride = ['sonatypeUsername', 'sonatypePassword', 'signing.gnupg.homeDir', 'signing.gnupg.keyName']
+    List<String> optionalPropertiesToOverride = ['signing.gnupg.passphrase']
+    logger.lifecycle("Overriding properties ${propertiesToOverride + optionalPropertiesToOverride} to use *E2E (non-production) values. Can be disbled with '-PdisableE2EOverriding'")
+    overridePropertiesForE2E(propertiesToOverride)
+    overrideOptionalPropertiesForE2E(optionalPropertiesToOverride)
+}
+void overridePropertiesForE2E(List<String> propertyToOverrideNames, boolean failIfNotProvided = true) {
+    propertyToOverrideNames.each { String propertyNameToOverride ->
+        project.ext[propertyNameToOverride] = project.getProperty("${propertyNameToOverride}E2E")
+    }
+}
+void overrideOptionalPropertiesForE2E(List<String> propertyToOverrideNames) {
+    propertyToOverrideNames.each { String propertyNameToOverride ->
+        String e2ePropertyNameToOverride = "${propertyNameToOverride}E2E"
+        if (project.hasProperty("$e2ePropertyNameToOverride")) {
+            project.ext[propertyNameToOverride] = project.getProperty("$e2ePropertyNameToOverride")
+        } else if (project.hasProperty(propertyNameToOverride)) {
+            logger.info("Nullifying $propertyNameToOverride")
+            project.ext[propertyNameToOverride] = null  //to ask for e2e passphrase using gpg-agent if executed interactively, even if production passprease is defined
+        } else {
+            logger.info("Ignoring not set twice $propertyNameToOverride")
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            stagingProfileId = "248647f1a45ed6" //can reduce execution time by even 10 seconds
+            retrying {
+                maxRetries.set(50)
+            }
+        }
+    }
+    clientTimeout = Duration.ofSeconds(90)
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from(components.java)
+            pom {
+                name = 'Minimal Nexus Publish E2E project'
+                description = 'Minimal project publishing artifacts to Nexus for E2E testing in gradle-nexus-publish-plugin'
+                url = 'https://github.com/gradle-nexus-e2e/nexus-publish-e2e-minimal'
+                inceptionYear = '2020'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'szpak'
+                        name = 'Marcin Zajączkowski'
+                    }
+                    developer {
+                        id = 'marcphilipp'
+                        name = 'Marc Philipp'
+                    }
+                }
+                scm {
+                    connection = 'scm:https://github.com/gradle-nexus-e2e/nexus-publish-e2e-minimal.git'
+                    developerConnection = 'scm:git@github.com:gradle-nexus-e2e/nexus-publish-e2e-minimal.git'
+                    url = 'https://github.com/gradle-nexus-e2e/nexus-publish-e2e-minimal'
+                }
+            }
+        }
+    }
+}
+
+
+signing {
+    required { !project.version.endsWith("-SNAPSHOT") && !project.hasProperty("skipSigning") }
+    useGpgCmd()
+    sign publishing.publications.mavenJava
+}
+
+//do not generate extra load on Nexus with new staging repository if signing fails
+tasks.withType(io.github.gradlenexus.publishplugin.InitializeNexusStagingRepository).configureEach {
+  shouldRunAfter(tasks.withType(Sign))
+}
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
