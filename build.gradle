@@ -5,15 +5,16 @@ plugins {
 }
 
 group = "io.github.gradle-nexus-e2e"
-version = "0.0.1-szpak"
+def versionSuffix = isOnCIServer() ? "ci" : "local"
+version = "0.0.1-$versionSuffix"
 
 sourceCompatibility = 1.8
 
 //Small hack to override release related properties to prevent accidental production release if called interactively
 //Intended to fail if required (non-optional) values are not provided
 if (!project.hasProperty("disableE2EOverriding")) {
-    List<String> propertiesToOverride = ['sonatypeUsername', 'sonatypePassword', 'signing.gnupg.keyName']
-    List<String> optionalPropertiesToOverride = ['signing.gnupg.homeDir', 'signing.gnupg.passphrase']
+    List<String> propertiesToOverride = ['sonatypeUsername', 'sonatypePassword']
+    List<String> optionalPropertiesToOverride = ['signingKey', 'signingPassword', 'signing.gnupg.keyName', 'signing.gnupg.homeDir', 'signing.gnupg.passphrase']
     logger.lifecycle("Overriding properties ${propertiesToOverride + optionalPropertiesToOverride} to use *E2E (non-production) values. Can be disbled with '-PdisableE2EOverriding'")
     overridePropertiesForE2E(propertiesToOverride)
     overrideOptionalPropertiesForE2E(optionalPropertiesToOverride)
@@ -96,7 +97,11 @@ publishing {
 
 signing {
     required { !project.version.endsWith("-SNAPSHOT") && !project.hasProperty("skipSigning") }
-    useGpgCmd()
+    if (isOnCIServer()) {
+        useInMemoryPgpKeys(findProperty("signingKey"), findProperty("signingPassword"))
+    } else {
+        useGpgCmd()
+    }
     sign publishing.publications.mavenJava
 }
 
@@ -109,4 +114,8 @@ javadoc {
     if(JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }
+}
+
+private boolean isOnCIServer() {
+    System.env.CI == "true"
 }
