@@ -1,0 +1,3 @@
+plugins {
+    `library-publishing-conventions`
+}

@@ -5,4 +5,6 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'nexus-publish-e2e-minimal'
+rootProject.name = "nexus-publish-e2e-multi-project"
+
+include("subproject1", "subproject2")
