@@ -2,6 +2,10 @@ plugins {
     id("io.github.gradle-nexus.publish-plugin") version "0.1.0-SNAPSHOT"
 }
 
+group = "io.github.gradle-nexus-e2e"
+val versionSuffix = if (System.getenv("CI") == "true") { "ci${System.getenv("GITHUB_RUN_NUMBER") ?: ""}" } else "local"
+version = "0.0.1-$versionSuffix"
+
 //Small hack to override release related properties to prevent accidental production release if called interactively
 //Intended to fail if required (non-optional) values are not provided
 if (!project.hasProperty("disableE2EOverriding")) {
