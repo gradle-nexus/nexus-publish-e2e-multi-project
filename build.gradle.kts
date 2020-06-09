@@ -1,5 +1,3 @@
-import java.time.Duration
-
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "0.1.0-SNAPSHOT"
 }
@@ -38,12 +36,8 @@ nexusPublishing {
     repositories {
         sonatype {
             stagingProfileId.set("248647f1a45ed6") //can reduce execution time by even 10 seconds
-            retrying {
-                maxRetries.set(50)
-            }
         }
     }
-    clientTimeout.set(Duration.ofSeconds(90))
 }
 
 //do not generate extra load on Nexus with new staging repository if signing fails
