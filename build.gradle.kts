@@ -1,5 +1,5 @@
 plugins {
-    id("io.github.gradle-nexus.publish-plugin") version "0.1.0-SNAPSHOT"
+    id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
 }
 
 group = "io.github.gradle-nexus-e2e"
