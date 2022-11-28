@@ -1,10 +1,11 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
-group = "io.github.gradle-nexus-e2e"
-val versionSuffix = if (System.getenv("CI") == "true") { "ci${System.getenv("GITHUB_RUN_NUMBER") ?: ""}" } else "local"
-version = "0.0.1-$versionSuffix"
+//Note: See library-publishing-conventions.gradle.kts for group and version definition
 
 //Small hack to override release related properties to prevent accidental production release if called interactively
 //Intended to fail if required (non-optional) values are not provided
