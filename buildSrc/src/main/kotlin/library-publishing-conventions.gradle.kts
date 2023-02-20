@@ -10,7 +10,7 @@ plugins {
 group = "io.github.gradle-nexus-e2e"
 val versionTimestamp = SimpleDateFormat("yyyyMMdd-HHmmss").format(Date()) //See: https://issues.sonatype.org/browse/OSSRH-86532
 var versionSuffix = if (isOnCIServer()) { "ci${System.getenv("GITHUB_RUN_NUMBER") ?: ""}-${versionTimestamp}" } else "local"
-version = "0.0.1-$versionSuffix"
+version = if (project.hasProperty("overriddenVersion")) { "${project.property("overriddenVersion")}" } else { "0.0.1-$versionSuffix" }
 
 repositories {
     mavenCentral()
