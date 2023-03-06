@@ -2,7 +2,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 plugins {
-    id("io.github.gradle-nexus.publish-plugin") version "1.2.0"
+    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
 }
 
 //Note: See library-publishing-conventions.gradle.kts for group and version definition
